@@ -28,7 +28,7 @@ class ZohoService {
 
   private async getAccessToken(): Promise<string> {
     try {
-      const response = await axios.post('https://accounts.zoho.com/oauth/v2/token', null, {
+      const response = await axios.post('https://cors-anywhere.herokuapp.com/https://accounts.zoho.com/oauth/v2/token', null, {
         params: {
           refresh_token: ZOHO_REFRESH_TOKEN,
           client_id: ZOHO_CLIENT_ID,
