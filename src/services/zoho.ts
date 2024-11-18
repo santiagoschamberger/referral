@@ -64,4 +64,4 @@ class ZohoService {
   }
 }
 
-export const zohoService = new ZohoService('https://zoho-backend-z4ef.onrender.com');
+export const zohoService = new ZohoService('https://cors-anywhere-x0cc.onrender.com/https://zoho-backend-z4ef.onrender.com');
