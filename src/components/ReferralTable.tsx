@@ -37,16 +37,19 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Date
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Contact
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {referrals.map((referral) => (
               <tr key={referral.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {referral.name}
+                  {referral.name || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {referral.company}
+                  {referral.company || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(referral.status)}`}>
@@ -56,8 +59,23 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {referral.date}
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {referral.email && (
+                    <div className="flex flex-col">
+                      <span>{referral.email}</span>
+                      {referral.phone && <span className="text-xs text-gray-400">{referral.phone}</span>}
+                    </div>
+                  )}
+                </td>
               </tr>
             ))}
+            {referrals.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                  No referrals found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -19,6 +19,8 @@ export interface Referral {
   company: string;
   status: 'In Progress' | 'Contacted' | 'Qualified' | 'Closed';
   date: string;
+  email?: string;
+  phone?: string;
 }
 
 export interface Stats {
