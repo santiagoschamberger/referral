@@ -1,43 +1,138 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import axios from 'axios';
+import api from '../services/axios';
 import { User } from '../types';
-import { demoUsers } from './demoUsers';
 
-interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+interface AuthResponse {
+	status: string;
+	message: string;
+	data: {
+		user: {
+			uuid: string;
+			full_name: string;
+			email: string;
+			role: string;
+		};
+		token: string;
+	};
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isAuthenticated: false,
-  login: async (email: string, password: string) => {
-    const user = demoUsers.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (user) {
-      const { password: _, ...userWithoutPassword } = user;
-      set({ user: userWithoutPassword, isAuthenticated: true });
-      return true;
-    }
-    return false;
-  },
-  register: async (name: string, email: string, password: string) => {
-    if (demoUsers.some((u) => u.email === email)) {
-      return false;
-    }
-    const newUser = {
-      id: String(demoUsers.length + 1),
-      name,
-      email,
-      password,
-      role: 'user' as const,
-      compensationLink: `https://example.com/compensation/user${demoUsers.length + 1}`,
-    };
-    demoUsers.push(newUser);
-    return true;
-  },
-  logout: () => set({ user: null, isAuthenticated: false }),
-}));
+interface AuthState {
+	user: User | null;
+	isAuthenticated: boolean;
+	token: string | null;
+	login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
+	register: (name: string, email: string, password: string, confirmPassword: string) => Promise<{ success: boolean; message: string }>;
+	logout: () => void;
+	initialize: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+	persist(
+		(set) => ({
+			user: null,
+			isAuthenticated: false,
+			token: null,
+			initialize: () => {
+				const token = localStorage.getItem('token');
+				const userData = localStorage.getItem('user');
+				if (token && userData) {
+					const user = JSON.parse(userData);
+					set({ user, isAuthenticated: true, token });
+				}
+			},
+			login: async (email: string, password: string) => {
+				try {
+					const response = await api.post<AuthResponse>('/users/login', {
+						email,
+						password
+					});
+
+					if (response.data.status === 'success' && response.data.data.user) {
+						const { user, token } = response.data.data;
+						const userData = {
+							id: user.uuid,
+							name: user.full_name,
+							email: user.email,
+							role: user.role
+						};
+
+						localStorage.setItem('token', token);
+						localStorage.setItem('user', JSON.stringify(userData));
+
+						set({
+							token,
+							user: userData,
+							isAuthenticated: true
+						});
+						return { success: true, message: response.data.message };
+					}
+
+					return { success: false, message: 'Login failed' };
+				} catch (error) {
+					if (axios.isAxiosError(error)) {
+						return {
+							success: false,
+							message: error.response?.data?.message || 'Invalid credentials'
+						};
+					}
+					return { success: false, message: 'An error occurred during login' };
+				}
+			},
+			register: async (name: string, email: string, password: string, confirmPassword: string) => {
+				try {
+					const response = await api.post<AuthResponse>('/users/register', {
+						fullName: name,
+						emailAddress: email,
+						password,
+						confirmPassword
+					});
+
+					if (response.data.status === 'success' && response.data.data.user) {
+						const { user, token } = response.data.data;
+						const userData = {
+							id: user.uuid,
+							name: user.full_name,
+							email: user.email,
+							role: user.role
+						};
+
+						localStorage.setItem('token', token);
+						localStorage.setItem('user', JSON.stringify(userData));
+
+						set({
+							token,
+							user: userData,
+							isAuthenticated: true
+						});
+						return { success: true, message: response.data.message };
+					}
+
+					return { success: false, message: 'Registration failed' };
+				} catch (error) {
+					if (axios.isAxiosError(error)) {
+						return {
+							success: false,
+							message: error.response?.data?.message || 'Registration failed'
+						};
+					}
+					return { success: false, message: 'An error occurred during registration' };
+				}
+			},
+			logout: () => {
+				localStorage.removeItem('token');
+				localStorage.removeItem('user');
+				set({ user: null, isAuthenticated: false, token: null });
+			},
+		}),
+		{
+			name: 'auth-storage',
+			partialize: (state) => ({
+				user: state.user,
+				isAuthenticated: state.isAuthenticated,
+				token: state.token
+			})
+		}
+	)
+);

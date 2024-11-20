@@ -13,11 +13,24 @@ export interface Tutorial {
   videoUrl: string;
 }
 
+export type ReferralStatus = 
+  | 'None'
+  | 'New'
+  | 'Sent Pre-Vet'
+  | 'Contact Attempt 1'
+  | 'Contact Attempt 2'
+  | 'Sent Pre-App'
+  | 'Pre-App Received'
+  | 'Sent Application for Signature'
+  | 'Signed Application'
+  | 'Convert'
+  | 'Lost';
+
 export interface Referral {
   id: string;
   name: string;
   company: string;
-  status: 'In Progress' | 'Contacted' | 'Qualified' | 'Closed';
+  status: ReferralStatus;
   date: string;
   email?: string;
   phone?: string;
