@@ -33,4 +33,4 @@ export default function StatsCard({ title, value, Icon, change }: StatsCardProps
 			</div>
 		</div>
 	);
-}
+} 
