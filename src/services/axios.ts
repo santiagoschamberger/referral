@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://44.210.39.119:5000/api/v1',
+    baseURL: 'https://referral-api.cryptolaws.in/api/v1',
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
