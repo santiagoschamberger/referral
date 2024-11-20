@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import { useAuthStore } from './store/authStore';
 
@@ -14,28 +14,152 @@ const SubmitReferral = React.lazy(() => import('./pages/SubmitReferral'));
 const Tutorials = React.lazy(() => import('./pages/Tutorials'));
 const Compensation = React.lazy(() => import('./pages/Compensation'));
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-	const { isAuthenticated } = useAuthStore();
-	return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+interface ProtectedRouteProps {
+	children: React.ReactNode;
+	requiredRole?: 'admin' | 'user';
 }
 
-function AdminRoute({ children }: { children: React.ReactNode }) {
-	const { user } = useAuthStore();
-	return user?.role === 'admin' ? <>{children}</> : <Navigate to="/dashboard" />;
+function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+	const { isAuthenticated, user } = useAuthStore();
+	const location = useLocation();
+
+	if (!isAuthenticated) {
+		return <Navigate to="/login" state={{ from: location }} replace />;
+	}
+
+	if (requiredRole && user?.role !== requiredRole) {
+		return <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+	}
+
+	return <>{children}</>;
 }
 
-function UserRoute({ children }: { children: React.ReactNode }) {
-	const { user } = useAuthStore();
-	return user?.role === 'user' ? <>{children}</> : <Navigate to="/admin" />;
+function PublicRoute({ children }: { children: React.ReactNode }) {
+	const { isAuthenticated, user } = useAuthStore();
+
+	if (isAuthenticated) {
+		return <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+	}
+
+	return <>{children}</>;
 }
 
-export default function App() {
-	const { user, initialize } = useAuthStore();
+function AppRoutes() {
+	const { initialize } = useAuthStore();
 
 	useEffect(() => {
 		initialize();
-	}, [initialize]);
+	}, []);
 
+	return (
+		<Routes>
+			{/* Public Routes */}
+			<Route
+				path="/login"
+				element={
+					<PublicRoute>
+						<Login />
+					</PublicRoute>
+				}
+			/>
+			<Route
+				path="/register"
+				element={
+					<PublicRoute>
+						<Register />
+					</PublicRoute>
+				}
+			/>
+
+			{/* Protected Routes */}
+			<Route
+				element={
+					<ProtectedRoute>
+						<Layout />
+					</ProtectedRoute>
+				}
+			>
+				{/* Admin Routes */}
+				<Route
+					path="/admin"
+					element={
+						<ProtectedRoute requiredRole="admin">
+							<AdminDashboard />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/users"
+					element={
+						<ProtectedRoute requiredRole="admin">
+							<UserManagement />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/admin/tutorials"
+					element={
+						<ProtectedRoute requiredRole="admin">
+							<TutorialManagement />
+						</ProtectedRoute>
+					}
+				/>
+
+				{/* User Routes */}
+				<Route
+					path="/dashboard"
+					element={
+						<ProtectedRoute requiredRole="user">
+							<Dashboard />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/submit"
+					element={
+						<ProtectedRoute requiredRole="user">
+							<SubmitReferral />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/tutorials"
+					element={
+						<ProtectedRoute requiredRole="user">
+							<Tutorials />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path="/compensation"
+					element={
+						<ProtectedRoute requiredRole="user">
+							<Compensation />
+						</ProtectedRoute>
+					}
+				/>
+
+				{/* Root Route */}
+				<Route
+					path="/"
+					element={
+						<Navigate to="/dashboard" replace />
+					}
+				/>
+			</Route>
+
+			{/* Catch-all route */}
+			<Route
+				path="*"
+				element={
+					<Navigate to="/dashboard" replace />
+				}
+			/>
+		</Routes>
+	);
+}
+
+export default function App() {
 	return (
 		<BrowserRouter>
 			<React.Suspense
@@ -45,88 +169,7 @@ export default function App() {
 					</div>
 				}
 			>
-				<Routes>
-					<Route path="/login" element={<Login />} />
-					<Route path="/register" element={<Register />} />
-
-					<Route
-						element={
-							<PrivateRoute>
-								<Layout />
-							</PrivateRoute>
-						}
-					>
-						{/* Admin Routes */}
-						<Route
-							path="/admin"
-							element={
-								<AdminRoute>
-									<AdminDashboard />
-								</AdminRoute>
-							}
-						/>
-						<Route
-							path="/users"
-							element={
-								<AdminRoute>
-									<UserManagement />
-								</AdminRoute>
-							}
-						/>
-						<Route
-							path="/admin/tutorials"
-							element={
-								<AdminRoute>
-									<TutorialManagement />
-								</AdminRoute>
-							}
-						/>
-
-						{/* User Routes */}
-						<Route
-							path="/dashboard"
-							element={
-								<UserRoute>
-									<Dashboard />
-								</UserRoute>
-							}
-						/>
-						<Route
-							path="/submit"
-							element={
-								<UserRoute>
-									<SubmitReferral />
-								</UserRoute>
-							}
-						/>
-						<Route
-							path="/tutorials"
-							element={
-								<UserRoute>
-									<Tutorials />
-								</UserRoute>
-							}
-						/>
-						<Route
-							path="/compensation"
-							element={
-								<UserRoute>
-									<Compensation />
-								</UserRoute>
-							}
-						/>
-
-						<Route
-							path="/"
-							element={
-								<Navigate
-									to={user?.role === 'admin' ? '/admin' : '/dashboard'}
-									replace
-								/>
-							}
-						/>
-					</Route>
-				</Routes>
+				<AppRoutes />
 			</React.Suspense>
 		</BrowserRouter>
 	);

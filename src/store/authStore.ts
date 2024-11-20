@@ -22,8 +22,9 @@ interface AuthState {
 	user: User | null;
 	isAuthenticated: boolean;
 	token: string | null;
+	isInitialized: boolean;
 	login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
-	register: (name: string, email: string, password: string, confirmPassword: string) => Promise<{ success: boolean; message: string }>;
+	register: (fullName: string, emailAddress: string, password: string, confirmPassword: string) => Promise<{ success: boolean; message: string }>;
 	logout: () => void;
 	initialize: () => void;
 }
@@ -34,12 +35,21 @@ export const useAuthStore = create<AuthState>()(
 			user: null,
 			isAuthenticated: false,
 			token: null,
+			isInitialized: false,
 			initialize: () => {
 				const token = localStorage.getItem('token');
 				const userData = localStorage.getItem('user');
 				if (token && userData) {
-					const user = JSON.parse(userData);
-					set({ user, isAuthenticated: true, token });
+					try {
+						const user = JSON.parse(userData);
+						set({ user, isAuthenticated: true, token, isInitialized: true });
+					} catch {
+						localStorage.removeItem('token');
+						localStorage.removeItem('user');
+						set({ user: null, isAuthenticated: false, token: null, isInitialized: true });
+					}
+				} else {
+					set({ isInitialized: true });
 				}
 			},
 			login: async (email: string, password: string) => {
@@ -80,11 +90,11 @@ export const useAuthStore = create<AuthState>()(
 					return { success: false, message: 'An error occurred during login' };
 				}
 			},
-			register: async (name: string, email: string, password: string, confirmPassword: string) => {
+			register: async (fullName: string, emailAddress: string, password: string, confirmPassword: string) => {
 				try {
 					const response = await api.post<AuthResponse>('/users/register', {
-						fullName: name,
-						emailAddress: email,
+						fullName,
+						emailAddress,
 						password,
 						confirmPassword
 					});
@@ -95,7 +105,7 @@ export const useAuthStore = create<AuthState>()(
 							id: user.uuid,
 							name: user.full_name,
 							email: user.email,
-							role: user.role
+							role: 'user' // Default role for new registrations
 						};
 
 						localStorage.setItem('token', token);

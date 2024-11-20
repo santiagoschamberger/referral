@@ -5,8 +5,8 @@ import { UserPlus } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 interface RegisterForm {
-	name: string;
-	email: string;
+	fullName: string;
+	emailAddress: string;
 	password: string;
 	confirmPassword: string;
 }
@@ -24,14 +24,20 @@ export default function Register() {
 		setError('');
 
 		try {
-			const result = await register(data.name, data.email, data.password, data.confirmPassword);
+			const result = await register(
+				data.fullName,
+				data.emailAddress,
+				data.password,
+				data.confirmPassword
+			);
+
 			if (result.success) {
-				navigate('/dashboard');
+				// Navigation will be handled by the auth route
 			} else {
 				setError(result.message);
 			}
-		}  catch (err:any) {
-			setError(err?.message);
+		} catch (err) {
+			setError('An unexpected error occurred during registration');
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -64,35 +70,35 @@ export default function Register() {
 						)}
 
 						<div>
-							<label htmlFor="name" className="block text-sm font-medium text-gray-700">
+							<label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
 								Full Name
 							</label>
 							<div className="mt-1">
 								<input
+									id="fullName"
 									type="text"
-									id="name"
 									autoComplete="name"
 									className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
-									{...registerField('name', { required: 'Name is required' })}
+									{...registerField('fullName', { required: 'Full name is required' })}
 									disabled={isSubmitting}
 								/>
-								{errors.name && (
-									<p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+								{errors.fullName && (
+									<p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
 								)}
 							</div>
 						</div>
 
 						<div>
-							<label htmlFor="email" className="block text-sm font-medium text-gray-700">
+							<label htmlFor="emailAddress" className="block text-sm font-medium text-gray-700">
 								Email address
 							</label>
 							<div className="mt-1">
 								<input
+									id="emailAddress"
 									type="email"
-									id="email"
 									autoComplete="email"
 									className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
-									{...registerField('email', {
+									{...registerField('emailAddress', {
 										required: 'Email is required',
 										pattern: {
 											value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -101,8 +107,8 @@ export default function Register() {
 									})}
 									disabled={isSubmitting}
 								/>
-								{errors.email && (
-									<p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+								{errors.emailAddress && (
+									<p className="mt-1 text-sm text-red-600">{errors.emailAddress.message}</p>
 								)}
 							</div>
 						</div>
@@ -113,8 +119,8 @@ export default function Register() {
 							</label>
 							<div className="mt-1">
 								<input
-									type="password"
 									id="password"
+									type="password"
 									autoComplete="new-password"
 									className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
 									{...registerField('password', {
@@ -138,8 +144,8 @@ export default function Register() {
 							</label>
 							<div className="mt-1">
 								<input
-									type="password"
 									id="confirmPassword"
+									type="password"
 									autoComplete="new-password"
 									className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
 									{...registerField('confirmPassword', {
@@ -166,7 +172,7 @@ export default function Register() {
 										Registering...
 									</div>
 								) : (
-									'Register'
+									'Create Account'
 								)}
 							</button>
 						</div>
