@@ -1,16 +1,46 @@
 export interface User {
-  id: string;
-  name: string;
+  uuid: string;
+  full_name: string;
   email: string;
   role: 'admin' | 'user';
-  compensationLink?: string;
+  compensation_link: string | null;
+  created_at: string;
 }
 
 export interface Tutorial {
   id: string;
   title: string;
   description: string;
-  videoUrl: string;
+  video_link: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTutorialInput {
+  title: string;
+  description: string;
+  video_link: string;
+  is_public: boolean;
+}
+
+export interface UpdateTutorialInput {
+  title?: string;
+  description?: string;
+  video_link?: string;
+  is_public?: boolean;
+}
+
+export interface PaginationMetadata {
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: PaginationMetadata;
 }
 
 export type ReferralStatus = 
