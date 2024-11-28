@@ -2,11 +2,15 @@ import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { LogOut, Users, Video, LayoutDashboard, Send, DollarSign } from 'lucide-react';
+import { useProfile } from '../hooks/useProfile';
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Use the profile hook to handle profile refresh
+  useProfile();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -18,7 +22,6 @@ export default function Layout() {
   const handleCompensationClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!user?.compensation_link) {
       e.preventDefault();
-      // You could show a toast or modal here to inform the user
       alert('No compensation link available. Please contact an administrator.');
     }
   };
@@ -101,9 +104,7 @@ export default function Layout() {
                     href={user.compensation_link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`flex items-center space-x-1 hover:text-gray-300 ${
-                      isActive('/compensation') ? 'text-red-400' : ''
-                    }`}
+                    className="flex items-center space-x-1 hover:text-gray-300"
                   >
                     <DollarSign size={20} />
                     <span>My Compensation</span>

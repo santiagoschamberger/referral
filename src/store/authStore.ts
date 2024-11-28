@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, AuthResponse } from '../types';
 import api from '../services/axios';
+import { userProfileService } from '../services/userProfileService';
 
 interface AuthState {
   user: User | null;
@@ -12,6 +13,7 @@ interface AuthState {
   register: (fullName: string, emailAddress: string, password: string, confirmPassword: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   initialize: () => void;
+  refreshProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -35,6 +37,15 @@ export const useAuthStore = create<AuthState>()(
           }
         } else {
           set({ isInitialized: true });
+        }
+      },
+      refreshProfile: async () => {
+        try {
+          const user = await userProfileService.getProfile();
+          localStorage.setItem('user', JSON.stringify(user));
+          set({ user });
+        } catch (error) {
+          console.error('Failed to refresh user profile:', error);
         }
       },
       login: async (email: string, password: string) => {
