@@ -1,19 +1,19 @@
 import React from 'react';
 import { Users, Video, TrendingUp } from 'lucide-react';
 import StatsCard from '../../components/StatsCard';
-
-const mockStats = {
-  totalUsers: 156,
-  activeUsers: 89,
-  totalTutorials: 12,
-  monthlyGrowth: {
-    users: 12,
-    activity: 8.5,
-    tutorials: 2
-  }
-};
+import { useAdminStats } from '../../hooks/useAdminStats';
 
 export default function AdminDashboard() {
+  const { stats, loading, error } = useAdminStats();
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="sm:flex sm:items-center">
@@ -25,65 +25,51 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md flex items-center">
+          <svg className="h-5 w-5 text-red-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          {error}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
           title="Total Users"
-          value={mockStats.totalUsers}
-          change={`+${mockStats.monthlyGrowth.users}% vs last month`}
+          value={stats?.totalUsers || 0}
+          change={`${stats?.activeUsers || 0} active users`}
           Icon={Users}
         />
         <StatsCard
           title="Active Users"
-          value={mockStats.activeUsers}
-          change={`+${mockStats.monthlyGrowth.activity}% vs last month`}
+          value={stats?.activeUsers || 0}
+          change={`${Math.round((stats?.activeUsers || 0) / (stats?.totalUsers || 1) * 100)}% of total users`}
           Icon={TrendingUp}
         />
         <StatsCard
           title="Total Tutorials"
-          value={mockStats.totalTutorials}
-          change={`+${mockStats.monthlyGrowth.tutorials} this month`}
+          value={stats?.totalTutorials || 0}
+          change="Available for users"
           Icon={Video}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            {[
-              { user: 'John Smith', action: 'Submitted a new referral', time: '2 hours ago' },
-              { user: 'Sarah Johnson', action: 'Updated profile', time: '4 hours ago' },
-              { user: 'Michael Brown', action: 'Watched tutorial', time: '5 hours ago' },
-            ].map((activity, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{activity.user}</p>
-                  <p className="text-sm text-gray-500">{activity.action}</p>
-                </div>
-                <span className="text-sm text-gray-400">{activity.time}</span>
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h2>
+        <div className="space-y-4">
+          {stats?.recentActivity.map((activity, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900">{activity.user}</p>
+                <p className="text-sm text-gray-500">{activity.action}</p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* System Status */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">System Status</h2>
-          <div className="space-y-4">
-            {[
-              { service: 'Zoho CRM Integration', status: 'Operational' },
-              { service: 'User Authentication', status: 'Operational' },
-              { service: 'Payment Processing', status: 'Operational' },
-            ].map((service, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <span className="text-sm text-gray-900">{service.service}</span>
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                  {service.status}
-                </span>
-              </div>
-            ))}
-          </div>
+              <span className="text-sm text-gray-400">{activity.timeAgo}</span>
+            </div>
+          ))}
+          {(!stats?.recentActivity || stats.recentActivity.length === 0) && (
+            <p className="text-sm text-gray-500 text-center">No recent activity</p>
+          )}
         </div>
       </div>
     </div>

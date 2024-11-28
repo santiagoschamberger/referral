@@ -78,15 +78,6 @@ export interface Stats {
   };
 }
 
-export interface AuthResponse {
-  status: string;
-  message: string;
-  data: {
-    user: User;
-    token: string;
-  };
-}
-
 export interface Deal {
   id: string;
   Deal_Name: string;
@@ -94,4 +85,24 @@ export interface Deal {
   Stage: string;
   Lead_Source: string;
   Created_Time: string;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalTutorials: number;
+  recentActivity: Array<{
+    user: string;
+    action: string;
+    timeAgo: string;
+  }>;
+}
+
+export interface AuthResponse {
+  status: string;
+  message: string;
+  data: {
+    user: User;
+    token: string;
+  };
 }
