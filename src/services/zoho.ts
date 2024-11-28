@@ -1,157 +1,179 @@
 import axios from 'axios';
-import type { Referral, Stats, ReferralStatus } from '../types';
+import type { Referral, Stats, Deal, ReferralStatus } from '../types';
 import api from './axios';
 
 interface ReferralSubmission {
-	firstName: string;
-	lastName: string;
-	email: string;
-	company: string;
-	title: string;
-	description: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  company: string;
+  title: string;
+  description: string;
 }
 
 interface ZohoResponse {
-	data: Array<{
-		code: string;
-		details?: {
-			api_name?: string;
-			id?: string;
-		};
-		message: string;
-		status: string;
-	}>;
+  data: Array<{
+    code: string;
+    details?: {
+      api_name?: string;
+      id?: string;
+    };
+    message: string;
+    status: string;
+  }>;
 }
 
 class ZohoService {
-	async getLeads(): Promise<Referral[]> {
-		try {
-			const response = await api.get('/leads/by-lead-source');
+  async getLeads(signal?: AbortSignal): Promise<Referral[]> {
+    try {
+      const response = await api.get('/leads/by-lead-source', { signal });
 
-			if (!response.data?.leads) {
-				return [];
-			}
+      if (!response.data?.leads) {
+        return [];
+      }
 
-			return response.data.leads.map((lead: any) => ({
-				id: lead.id,
-				name: lead.Full_Name || `${lead.First_Name || ''} ${lead.Last_Name || ''}`.trim() || 'Unknown',
-				company: lead.Company || 'N/A',
-				status: (lead.Lead_Status || 'New') as ReferralStatus,
-				date: new Date(lead.Created_Time).toISOString().split('T')[0],
-				email: lead.Email || undefined,
-				phone: lead.Phone || undefined,
-			}));
-		} catch (error) {
-			console.error('Error fetching leads:', error);
-			if (axios.isAxiosError(error)) {
-				throw new Error(error.response?.data?.message || 'Failed to fetch leads');
-			}
-			throw new Error('Failed to fetch leads');
-		}
-	}
+      return response.data.leads.map((lead: any) => ({
+        id: lead.id,
+        name: lead.Full_Name || `${lead.First_Name || ''} ${lead.Last_Name || ''}`.trim() || 'Unknown',
+        company: lead.Company || 'N/A',
+        status: (lead.Lead_Status || 'New') as ReferralStatus,
+        date: new Date(lead.Created_Time).toISOString().split('T')[0],
+        email: lead.Email || undefined,
+        phone: lead.Phone || undefined,
+      }));
+    } catch (error) {
+      console.error('Error fetching leads:', error);
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch leads');
+      }
+      throw new Error('Failed to fetch leads');
+    }
+  }
 
-	async getStats(): Promise<Stats> {
-		try {
-			const leads = await this.getLeads();
-			const now = new Date();
-			const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+  async getDeals(signal?: AbortSignal): Promise<Deal[]> {
+    try {
+      const response = await api.get('/leads/deals/by-referrer', { signal });
 
-			// Current month leads
-			const currentMonthLeads = leads.filter(lead =>
-				new Date(lead.date) >= lastMonth && new Date(lead.date) <= now
-			);
+      if (!response.data?.deals) {
+        return [];
+      }
 
-			// Last month leads
-			const previousMonth = new Date(lastMonth.getFullYear(), lastMonth.getMonth() - 1, lastMonth.getDate());
-			const lastMonthLeads = leads.filter(lead =>
-				new Date(lead.date) >= previousMonth && new Date(lead.date) < lastMonth
-			);
+      return response.data.deals.map((deal: any) => ({
+        id: deal.id,
+        Deal_Name: deal.Deal_Name || 'Unnamed Deal',
+        Amount: parseFloat(deal.Amount) || 0,
+        Stage: deal.Stage || 'Unknown',
+        Lead_Source: deal.Lead_Source,
+        Created_Time: deal.Created_Time
+      }));
+    } catch (error) {
+      console.error('Error fetching deals:', error);
+      throw new Error('Failed to fetch deals');
+    }
+  }
 
-			// Calculate conversion rates
-			const isConverted = (status: ReferralStatus) =>
-				['Convert', 'Signed Application'].includes(status);
-			const isActive = (status: ReferralStatus) =>
-				!['Convert', 'Lost'].includes(status);
+  async getStats(signal?: AbortSignal): Promise<Stats> {
+    try {
+      const leads = await this.getLeads(signal);
+      const now = new Date();
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
-			// Current period stats
-			const totalReferrals = currentMonthLeads.length;
-			const convertedLeads = currentMonthLeads.filter(lead => isConverted(lead.status)).length;
-			const activeLeads = currentMonthLeads.filter(lead => isActive(lead.status)).length;
-			const conversionRate = totalReferrals > 0 ? (convertedLeads / totalReferrals) * 100 : 0;
+      // Current month leads
+      const currentMonthLeads = leads.filter(lead =>
+        new Date(lead.date) >= lastMonth && new Date(lead.date) <= now
+      );
 
-			// Last period stats
-			const lastMonthTotal = lastMonthLeads.length;
-			const lastMonthConverted = lastMonthLeads.filter(lead => isConverted(lead.status)).length;
-			const lastMonthActive = lastMonthLeads.filter(lead => isActive(lead.status)).length;
-			const lastMonthConversion = lastMonthTotal > 0 ? (lastMonthConverted / lastMonthTotal) * 100 : 0;
+      // Last month leads
+      const previousMonth = new Date(lastMonth.getFullYear(), lastMonth.getMonth() - 1, lastMonth.getDate());
+      const lastMonthLeads = leads.filter(lead =>
+        new Date(lead.date) >= previousMonth && new Date(lead.date) < lastMonth
+      );
 
-			// Calculate growth
-			const referralGrowth = lastMonthTotal > 0
-				? ((totalReferrals - lastMonthTotal) / lastMonthTotal) * 100
-				: totalReferrals > 0 ? 100 : 0;
+      // Calculate conversion rates
+      const isConverted = (status: ReferralStatus) => 
+        ['Convert', 'Signed Application'].includes(status);
+      const isActive = (status: ReferralStatus) => 
+        !['Convert', 'Lost'].includes(status);
 
-			const conversionGrowth = lastMonthConversion > 0
-				? conversionRate - lastMonthConversion
-				: conversionRate;
+      // Current period stats
+      const totalReferrals = currentMonthLeads.length;
+      const convertedLeads = currentMonthLeads.filter(lead => isConverted(lead.status)).length;
+      const activeLeads = currentMonthLeads.filter(lead => isActive(lead.status)).length;
+      const conversionRate = totalReferrals > 0 ? (convertedLeads / totalReferrals) * 100 : 0;
 
-			const leadsGrowth = lastMonthActive > 0
-				? activeLeads - lastMonthActive
-				: activeLeads;
+      // Last period stats
+      const lastMonthTotal = lastMonthLeads.length;
+      const lastMonthConverted = lastMonthLeads.filter(lead => isConverted(lead.status)).length;
+      const lastMonthActive = lastMonthLeads.filter(lead => isActive(lead.status)).length;
+      const lastMonthConversion = lastMonthTotal > 0 ? (lastMonthConverted / lastMonthTotal) * 100 : 0;
 
-			return {
-				totalReferrals,
-				conversionRate: Math.round(conversionRate * 10) / 10,
-				activeLeads,
-				monthlyGrowth: {
-					referrals: Math.round(referralGrowth * 10) / 10,
-					conversion: Math.round(conversionGrowth * 10) / 10,
-					leads: leadsGrowth
-				}
-			};
-		} catch (error) {
-			console.error('Error calculating stats:', error);
-			return {
-				totalReferrals: 0,
-				conversionRate: 0,
-				activeLeads: 0,
-				monthlyGrowth: {
-					referrals: 0,
-					conversion: 0,
-					leads: 0
-				}
-			};
-		}
-	}
+      // Calculate growth
+      const referralGrowth = lastMonthTotal > 0
+        ? ((totalReferrals - lastMonthTotal) / lastMonthTotal) * 100
+        : totalReferrals > 0 ? 100 : 0;
 
-	async submitReferral(referral: ReferralSubmission): Promise<void> {
-		try {
-			const response = await api.post<ZohoResponse>('/leads/referral', {
-				Last_Name: referral.lastName,
-				First_Name: referral.firstName,
-				Email: referral.email,
-				Company: referral.company,
-				Title: referral.title,
-				Description: referral.description
-			});
+      const conversionGrowth = lastMonthConversion > 0
+        ? conversionRate - lastMonthConversion
+        : conversionRate;
 
-			if (response.data?.data?.[0]?.code === 'DUPLICATE_DATA') {
-				throw new Error('A referral with this email already exists');
-			}
+      const leadsGrowth = lastMonthActive > 0
+        ? activeLeads - lastMonthActive
+        : activeLeads;
 
-			if (response.data?.data?.[0]?.code !== 'SUCCESS') {
-				throw new Error(response.data?.data?.[0]?.message || 'Failed to submit referral');
-			}
-		} catch (error) {
-			console.error('Error submitting referral:', error);
-			if (axios.isAxiosError(error)) {
-				if (error.response?.data?.data?.[0]?.code === 'DUPLICATE_DATA') {
-					throw new Error('A referral with this email already exists');
-				}
-				throw new Error(error.response?.data?.message || 'Failed to submit referral');
-			}
-			throw error;
-		}
-	}
+      return {
+        totalReferrals,
+        conversionRate: Math.round(conversionRate * 10) / 10,
+        activeLeads,
+        monthlyGrowth: {
+          referrals: Math.round(referralGrowth * 10) / 10,
+          conversion: Math.round(conversionGrowth * 10) / 10,
+          leads: leadsGrowth
+        }
+      };
+    } catch (error) {
+      console.error('Error calculating stats:', error);
+      return {
+        totalReferrals: 0,
+        conversionRate: 0,
+        activeLeads: 0,
+        monthlyGrowth: {
+          referrals: 0,
+          conversion: 0,
+          leads: 0
+        }
+      };
+    }
+  }
+
+  async submitReferral(referral: ReferralSubmission): Promise<void> {
+    try {
+      const response = await api.post<ZohoResponse>('/leads/referral', {
+        Last_Name: referral.lastName,
+        First_Name: referral.firstName,
+        Email: referral.email,
+        Company: referral.company,
+        Title: referral.title,
+        Description: referral.description
+      });
+
+      if (response.data?.data?.[0]?.code === 'DUPLICATE_DATA') {
+        throw new Error('A referral with this email already exists');
+      }
+
+      if (response.data?.data?.[0]?.code !== 'SUCCESS') {
+        throw new Error(response.data?.data?.[0]?.message || 'Failed to submit referral');
+      }
+    } catch (error) {
+      console.error('Error submitting referral:', error);
+      if (axios.isAxiosError(error)) {
+        if (error.response?.data?.data?.[0]?.code === 'DUPLICATE_DATA') {
+          throw new Error('A referral with this email already exists');
+        }
+        throw new Error(error.response?.data?.message || 'Failed to submit referral');
+      }
+      throw error;
+    }
+  }
 }
 
 export const zohoService = new ZohoService();

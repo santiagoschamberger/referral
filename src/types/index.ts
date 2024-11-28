@@ -86,3 +86,12 @@ export interface AuthResponse {
     token: string;
   };
 }
+
+export interface Deal {
+  id: string;
+  Deal_Name: string;
+  Amount: number;
+  Stage: string;
+  Lead_Source: string;
+  Created_Time: string;
+}
