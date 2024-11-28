@@ -17,11 +17,25 @@ export default function CompensationLinkModal({
   currentLink,
   isSubmitting
 }: CompensationLinkModalProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: {
       compensationLink: currentLink || ''
     }
   });
+
+  // Reset form when currentLink changes
+  React.useEffect(() => {
+    reset({ compensationLink: currentLink || '' });
+  }, [currentLink, reset]);
+
+  const handleFormSubmit = async (data: { compensationLink: string }) => {
+    try {
+      await onSubmit(data);
+      onClose(); // Close the modal after successful submission
+    } catch (error) {
+      console.error('Error updating compensation link:', error);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -48,7 +62,7 @@ export default function CompensationLinkModal({
                 Edit Compensation Link
               </h3>
               <div className="mt-4">
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                   <div>
                     <label htmlFor="compensationLink" className="block text-sm font-medium text-gray-700">
                       Compensation Link

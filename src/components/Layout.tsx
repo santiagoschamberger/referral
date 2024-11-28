@@ -15,6 +15,14 @@ export default function Layout() {
     navigate('/login');
   };
 
+  const handleCompensationClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!user?.compensation_link) {
+      e.preventDefault();
+      // You could show a toast or modal here to inform the user
+      alert('No compensation link available. Please contact an administrator.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-[#0f172a] text-white p-4">
@@ -41,9 +49,9 @@ export default function Layout() {
                   <span>Dashboard</span>
                 </Link>
                 <Link
-                  to="/users"
+                  to="/admin/users"
                   className={`flex items-center space-x-1 hover:text-gray-300 ${
-                    isActive('/users') ? 'text-red-400' : ''
+                    isActive('/admin/users') ? 'text-red-400' : ''
                   }`}
                 >
                   <Users size={20} />
@@ -88,19 +96,31 @@ export default function Layout() {
                   <Video size={20} />
                   <span>Tutorials</span>
                 </Link>
-                <Link
-                  to="/compensation"
-                  className={`flex items-center space-x-1 hover:text-gray-300 ${
-                    isActive('/compensation') ? 'text-red-400' : ''
-                  }`}
-                >
-                  <DollarSign size={20} />
-                  <span>My Compensation</span>
-                </Link>
+                {user?.compensation_link ? (
+                  <a
+                    href={user.compensation_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center space-x-1 hover:text-gray-300 ${
+                      isActive('/compensation') ? 'text-red-400' : ''
+                    }`}
+                  >
+                    <DollarSign size={20} />
+                    <span>My Compensation</span>
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => alert('No compensation link available. Please contact an administrator.')}
+                    className="flex items-center space-x-1 hover:text-gray-300 opacity-50 cursor-not-allowed"
+                  >
+                    <DollarSign size={20} />
+                    <span>My Compensation</span>
+                  </button>
+                )}
               </>
             )}
             <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-700">
-              <span className="text-sm">{user?.name}</span>
+              <span className="text-sm">{user?.full_name}</span>
               <button
                 onClick={handleLogout}
                 className="text-gray-300 hover:text-white"

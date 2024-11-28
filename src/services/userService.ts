@@ -38,11 +38,23 @@ export const userService = {
         compensation_link: compensationLink
       });
       
-      if (response.data.status !== 'success' || !response.data.data.user) {
+      if (response.data.status !== 'success') {
         throw new Error(response.data.message || 'Failed to update compensation link');
       }
-      return response.data.data.user;
+
+      // Return the updated user data
+      return response.data.data.user || {
+        uuid,
+        full_name: '',
+        email: '',
+        role: 'user',
+        compensation_link: compensationLink,
+        created_at: new Date().toISOString()
+      };
     } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
       throw new Error('Failed to update compensation link');
     }
   }

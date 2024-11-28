@@ -3,8 +3,9 @@ export interface User {
   full_name: string;
   email: string;
   role: 'admin' | 'user';
+  partner_id?: string;
   compensation_link: string | null;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface Tutorial {
@@ -74,5 +75,14 @@ export interface Stats {
     referrals: number;
     conversion: number;
     leads: number;
+  };
+}
+
+export interface AuthResponse {
+  status: string;
+  message: string;
+  data: {
+    user: User;
+    token: string;
   };
 }

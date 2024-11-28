@@ -23,6 +23,18 @@ export const tutorialService = {
     }
   },
 
+  async getPublicTutorials(): Promise<Tutorial[]> {
+    try {
+      const response = await api.get<TutorialResponse>('/tutorials');
+      if (response.data.status !== 'success' || !response.data.data.tutorials) {
+        throw new Error(response.data.message || 'No public tutorials available');
+      }
+      return response.data.data.tutorials;
+    } catch (error) {
+      throw new Error('Failed to fetch tutorials');
+    }
+  },
+
   async createTutorial(input: CreateTutorialInput): Promise<Tutorial> {
     try {
       const response = await api.post<TutorialResponse>('/admin/tutorials', input);
