@@ -22,8 +22,6 @@ interface ZohoLeadResponse {
     Email: string | null;
     Phone: string | null;
     Contact_Number: string | null;
-    First_Name: string | null;
-    Last_Name: string | null;
   }>;
 }
 
@@ -50,12 +48,13 @@ class ZohoService {
 
       return response.data.leads.map((lead) => ({
         id: lead.id,
-        Full_Name: lead.Full_Name || `${lead.First_Name || ''} ${lead.Last_Name || ''}`.trim() || 'Unknown',
+        Full_Name: lead.Full_Name || 'Unknown',
         Company: lead.Company || 'N/A',
         Lead_Status: lead.Lead_Status as ReferralStatus,
         Created_Time: lead.Created_Time,
         Email: lead.Email,
-        Phone: lead.Phone || lead.Contact_Number
+        Phone: lead.Phone,
+        Contact_Number: lead.Contact_Number
       }));
     } catch (error) {
       console.error('Error fetching leads:', error);

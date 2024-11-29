@@ -21,6 +21,13 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const getContactInfo = (referral: Referral) => {
+    if (referral.Email) return referral.Email;
+    if (referral.Phone) return referral.Phone;
+    if (referral.Contact_Number) return referral.Contact_Number;
+    return 'N/A';
+  };
+
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-6 py-5 border-b border-gray-200">
@@ -54,7 +61,7 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
                   {referral.Full_Name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {referral.Company}
+                  {referral.Company || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <ReferralStatusBadge status={referral.Lead_Status} />
@@ -63,7 +70,7 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
                   {formatDate(referral.Created_Time)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {referral.Email || referral.Phone || 'N/A'}
+                  {getContactInfo(referral)}
                 </td>
               </tr>
             ))}

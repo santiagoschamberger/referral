@@ -52,6 +52,7 @@ export interface Referral {
   Created_Time: string;
   Email: string | null;
   Phone: string | null;
+  Contact_Number?: string | null;
 }
 
 export type ReferralStatus = 
