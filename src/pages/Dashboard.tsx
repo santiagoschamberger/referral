@@ -7,6 +7,7 @@ import { useDashboardData } from '../hooks/useDashboardData';
 
 export default function Dashboard() {
   const { referrals, deals, stats, loading, error } = useDashboardData();
+  console.log("🚀 ~ Dashboard ~ referrals:", referrals)
 
   const formatChange = (value: number, isPercentage: boolean = false) => {
     if (value === 0) return 'No change vs last month';

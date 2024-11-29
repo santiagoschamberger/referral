@@ -11,6 +11,22 @@ interface ReferralSubmission {
   description: string;
 }
 
+interface ZohoLeadResponse {
+  message: string;
+  leads: Array<{
+    id: string;
+    Full_Name: string;
+    Company: string;
+    Lead_Status: string | null;
+    Created_Time: string;
+    Email: string | null;
+    Phone: string | null;
+    Contact_Number: string | null;
+    First_Name: string | null;
+    Last_Name: string | null;
+  }>;
+}
+
 interface ZohoResponse {
   data: Array<{
     code: string;
@@ -26,20 +42,20 @@ interface ZohoResponse {
 class ZohoService {
   async getLeads(signal?: AbortSignal): Promise<Referral[]> {
     try {
-      const response = await api.get('/leads/by-lead-source', { signal });
+      const response = await api.get<ZohoLeadResponse>('/leads/by-lead-source', { signal });
 
       if (!response.data?.leads) {
         return [];
       }
 
-      return response.data.leads.map((lead: any) => ({
+      return response.data.leads.map((lead) => ({
         id: lead.id,
-        name: lead.Full_Name || `${lead.First_Name || ''} ${lead.Last_Name || ''}`.trim() || 'Unknown',
-        company: lead.Company || 'N/A',
-        status: (lead.Lead_Status || 'New') as ReferralStatus,
-        date: new Date(lead.Created_Time).toISOString().split('T')[0],
-        email: lead.Email || undefined,
-        phone: lead.Phone || undefined,
+        Full_Name: lead.Full_Name || `${lead.First_Name || ''} ${lead.Last_Name || ''}`.trim() || 'Unknown',
+        Company: lead.Company || 'N/A',
+        Lead_Status: lead.Lead_Status as ReferralStatus,
+        Created_Time: lead.Created_Time,
+        Email: lead.Email,
+        Phone: lead.Phone || lead.Contact_Number
       }));
     } catch (error) {
       console.error('Error fetching leads:', error);
@@ -80,31 +96,31 @@ class ZohoService {
 
       // Current month leads
       const currentMonthLeads = leads.filter(lead =>
-        new Date(lead.date) >= lastMonth && new Date(lead.date) <= now
+        new Date(lead.Created_Time) >= lastMonth && new Date(lead.Created_Time) <= now
       );
 
       // Last month leads
       const previousMonth = new Date(lastMonth.getFullYear(), lastMonth.getMonth() - 1, lastMonth.getDate());
       const lastMonthLeads = leads.filter(lead =>
-        new Date(lead.date) >= previousMonth && new Date(lead.date) < lastMonth
+        new Date(lead.Created_Time) >= previousMonth && new Date(lead.Created_Time) < lastMonth
       );
 
       // Calculate conversion rates
       const isConverted = (status: ReferralStatus) => 
-        ['Convert', 'Signed Application'].includes(status);
+        ['Convert', 'Signed Application'].includes(status || '');
       const isActive = (status: ReferralStatus) => 
-        !['Convert', 'Lost'].includes(status);
+        !['Convert', 'Lost'].includes(status || '');
 
       // Current period stats
       const totalReferrals = currentMonthLeads.length;
-      const convertedLeads = currentMonthLeads.filter(lead => isConverted(lead.status)).length;
-      const activeLeads = currentMonthLeads.filter(lead => isActive(lead.status)).length;
+      const convertedLeads = currentMonthLeads.filter(lead => isConverted(lead.Lead_Status)).length;
+      const activeLeads = currentMonthLeads.filter(lead => isActive(lead.Lead_Status)).length;
       const conversionRate = totalReferrals > 0 ? (convertedLeads / totalReferrals) * 100 : 0;
 
       // Last period stats
       const lastMonthTotal = lastMonthLeads.length;
-      const lastMonthConverted = lastMonthLeads.filter(lead => isConverted(lead.status)).length;
-      const lastMonthActive = lastMonthLeads.filter(lead => isActive(lead.status)).length;
+      const lastMonthConverted = lastMonthLeads.filter(lead => isConverted(lead.Lead_Status)).length;
+      const lastMonthActive = lastMonthLeads.filter(lead => isActive(lead.Lead_Status)).length;
       const lastMonthConversion = lastMonthTotal > 0 ? (lastMonthConverted / lastMonthTotal) * 100 : 0;
 
       // Calculate growth

@@ -44,8 +44,17 @@ export interface PaginatedResponse<T> {
   pagination: PaginationMetadata;
 }
 
+export interface Referral {
+  id: string;
+  Full_Name: string;
+  Company: string;
+  Lead_Status: ReferralStatus;
+  Created_Time: string;
+  Email: string | null;
+  Phone: string | null;
+}
+
 export type ReferralStatus = 
-  | 'None'
   | 'New'
   | 'Sent Pre-Vet'
   | 'Contact Attempt 1'
@@ -55,28 +64,8 @@ export type ReferralStatus =
   | 'Sent Application for Signature'
   | 'Signed Application'
   | 'Convert'
-  | 'Lost';
-
-export interface Referral {
-  id: string;
-  name: string;
-  company: string;
-  status: ReferralStatus;
-  date: string;
-  email?: string;
-  phone?: string;
-}
-
-
-export interface Lead {
-  id: string;
-  Full_Name: string;
-  Company: string;
-  Lead_Status: string | null;
-  Created_Time: string;
-  Email: string | null;
-  Phone: string | null;
-}
+  | 'Lost'
+  | null;
 
 export interface Stats {
   totalReferrals: number;
