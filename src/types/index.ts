@@ -67,6 +67,17 @@ export interface Referral {
   phone?: string;
 }
 
+
+export interface Lead {
+  id: string;
+  Full_Name: string;
+  Company: string;
+  Lead_Status: string | null;
+  Created_Time: string;
+  Email: string | null;
+  Phone: string | null;
+}
+
 export interface Stats {
   totalReferrals: number;
   conversionRate: number;
