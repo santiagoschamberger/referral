@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { Users } from 'lucide-react';
 import { Referral } from '../types';
 import ReferralStatusBadge from './referrals/ReferralStatusBadge';
 import ReferralTablePagination from './referrals/ReferralTablePagination';
+import EmptyState from './EmptyState';
 
 interface ReferralTableProps {
   referrals: Referral[];
@@ -27,6 +29,21 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
     if (referral.Contact_Number) return referral.Contact_Number;
     return 'N/A';
   };
+
+  if (referrals.length === 0) {
+    return (
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="px-6 py-5 border-b border-gray-200">
+          <h3 className="text-lg font-medium leading-6 text-gray-900">Recent Referrals</h3>
+        </div>
+        <EmptyState
+          icon={Users}
+          title="No referrals yet"
+          description="Start referring leads to see them listed here."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -74,18 +91,10 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
                 </td>
               </tr>
             ))}
-            {currentReferrals.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                  No referrals found
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
       {referrals.length > ITEMS_PER_PAGE && (
         <ReferralTablePagination
           currentPage={currentPage}
