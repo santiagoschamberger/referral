@@ -16,6 +16,7 @@ import {
   Tutorials,
   Compensation
 } from './config/routes';
+import PublicReferral from './pages/PublicReferral';
 
 function AppRoutes() {
   const { initialize, isAuthenticated, user } = useAuthStore();
@@ -49,6 +50,8 @@ function AppRoutes() {
         }
       />
       
+      <Route path="/referral/:uuid" element={<PublicReferral />} />
+
       {/* Protected Routes */}
       <Route
         element={
