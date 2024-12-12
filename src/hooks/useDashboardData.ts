@@ -1,6 +1,7 @@
 import { useApi } from './useApi';
 import { zohoService } from '../services/zoho';
-import { Referral, Stats, Deal } from '../types';
+import { Referral, Stats, Deal, TimePeriod } from '../types';
+import { useState } from 'react';
 
 const defaultData = {
   referrals: [] as Referral[],
@@ -20,10 +21,12 @@ const defaultData = {
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export function useDashboardData() {
-  const { data: referrals, loading: referralsLoading, error: referralsError } = 
-    useApi(signal => zohoService.getLeads(signal), { 
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
+
+  const { data: referrals, loading: referralsLoading, error: referralsError, refetch: refetchReferrals } = 
+    useApi(signal => zohoService.getLeads({ period: timePeriod }, signal), { 
       defaultValue: [], 
-      cacheKey: 'dashboard-referrals',
+      cacheKey: `dashboard-referrals-${timePeriod}`,
       cacheDuration: CACHE_DURATION
     });
 
@@ -46,11 +49,18 @@ export function useDashboardData() {
     .filter(err => err && !err.includes('No deals found') && !err.includes('You didn\'t refer'))
     .join(' ');
 
+  const handleTimePeriodChange = async (newPeriod: TimePeriod) => {
+    setTimePeriod(newPeriod);
+    await refetchReferrals();
+  };
+
   return {
     referrals,
     deals,
     stats,
     loading: referralsLoading || dealsLoading || statsLoading,
-    error: error || null
+    error: error || null,
+    timePeriod,
+    onTimePeriodChange: handleTimePeriodChange
   };
 }

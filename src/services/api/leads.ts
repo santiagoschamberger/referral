@@ -3,9 +3,25 @@ import { Referral, ReferralStatus } from '../../types';
 import { ZohoLeadResponse, ReferralSubmission, ZohoResponse } from './types';
 import { handleApiError } from './errorHandler';
 
-export async function getLeads(signal?: AbortSignal): Promise<Referral[]> {
+
+
+export async function getLeads(params?: LeadsParams, signal?: AbortSignal): Promise<Referral[]> {
   try {
-    const response = await api.get<ZohoLeadResponse>('/leads/by-lead-source', { signal });
+    // Format dates for API
+    const queryParams: Record<string, string> = {};
+    
+    if (params?.period) {
+      queryParams.period = params.period;
+    } else if (params?.startDate && params?.endDate) {
+      queryParams.start_date = formatDateForAPI(params.startDate);
+      queryParams.end_date = formatDateForAPI(params.endDate);
+    }
+
+    const response = await api.get<ZohoLeadResponse>('/leads/by-lead-source', {
+      params: queryParams,
+      signal,
+    });
+
     return (response.data?.leads || []).map((lead) => ({
       id: lead.id,
       Full_Name: lead.Full_Name || 'Unknown',
@@ -21,25 +37,49 @@ export async function getLeads(signal?: AbortSignal): Promise<Referral[]> {
   }
 }
 
+ 
 export async function submitReferral(referral: ReferralSubmission): Promise<void> {
   try {
-    const response = await api.post<ZohoResponse>('/leads/referral', {
+    // Make the API request
+    const response = await api.post('/leads/referral', {
       Last_Name: referral.lastName,
       First_Name: referral.firstName,
       Email: referral.email,
       Company: referral.company,
       Title: referral.title,
-      Description: referral.description
+      Description: referral.description,
     });
 
-    if (response.data?.data?.[0]?.code === 'DUPLICATE_DATA') {
-      throw new Error('A referral with this email already exists');
+    // Extract response data
+    const leadData = response.data?.leadData?.data?.[0];
+    const noteData = response.data?.noteData?.data?.[0];
+
+    // Handle lead creation response
+    if (leadData?.code === 'DUPLICATE_DATA') {
+      throw new Error(
+        `A referral with this email already exists (Lead ID: ${leadData.details.id})`
+      );
     }
 
-    if (response.data?.data?.[0]?.code !== 'SUCCESS') {
-      throw new Error(response.data?.data?.[0]?.message || 'Failed to submit referral');
+    if (leadData?.code !== 'SUCCESS') {
+      throw new Error(
+        leadData?.message || 'Failed to create lead. Please try again later.'
+      );
     }
+
+    // Handle note creation response
+    if (noteData?.code !== 'SUCCESS') {
+      throw new Error(
+        noteData?.message || 'Failed to create note. Please try again later.'
+      );
+    }
+
+    // If both lead and note are successful, return without error
+    console.log('Referral submitted successfully:', {
+      leadId: leadData.details.id,
+      noteId: noteData.details.id,
+    });
   } catch (error) {
-    handleApiError(error);
+    handleApiError(error); // Use your error handler
   }
 }

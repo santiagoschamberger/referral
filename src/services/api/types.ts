@@ -24,6 +24,7 @@ export interface ZohoResponse {
   }>;
 }
 
+
 export interface ReferralSubmission {
   firstName: string;
   lastName: string;
@@ -32,4 +33,15 @@ export interface ReferralSubmission {
   phoneNumber: string;
   title: string;
   description: string;
+}
+
+export interface DateFilter {
+  startDate?: string;
+  endDate?: string;
+  period?: string;
+}
+
+export interface LeadsParams extends DateFilter {
+  page?: number;
+  limit?: number;
 }

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Users } from 'lucide-react';
 import { Referral } from '../types';
-import ReferralStatusBadge from './referrals/ReferralStatusBadge';
+import ReferralTableHeader from './referrals/ReferralTableHeader';
+import ReferralTableRow from './referrals/ReferralTableRow';
 import ReferralTablePagination from './referrals/ReferralTablePagination';
 import EmptyState from './EmptyState';
+import { TimePeriod, filterReferralsByDate } from '../utils/referralFilters';
 
 interface ReferralTableProps {
   referrals: Referral[];
@@ -13,21 +15,16 @@ const ITEMS_PER_PAGE = 10;
 
 export default function ReferralTable({ referrals }: ReferralTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('all');
 
-  // Calculate pagination values
+  const filteredReferrals = filterReferralsByDate(referrals, timePeriod);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentReferrals = referrals.slice(startIndex, endIndex);
+  const currentReferrals = filteredReferrals.slice(startIndex, endIndex);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  const getContactInfo = (referral: Referral) => {
-    if (referral.Email) return referral.Email;
-    if (referral.Phone) return referral.Phone;
-    if (referral.Contact_Number) return referral.Contact_Number;
-    return 'N/A';
+  const handleTimePeriodChange = (newPeriod: TimePeriod) => {
+    setTimePeriod(newPeriod);
+    setCurrentPage(1); // Reset to first page when changing time period
   };
 
   if (referrals.length === 0) {
@@ -47,9 +44,11 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
 
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="px-6 py-5 border-b border-gray-200">
-        <h3 className="text-lg font-medium leading-6 text-gray-900">Recent Referrals</h3>
-      </div>
+      <ReferralTableHeader
+        totalReferrals={filteredReferrals.length}
+        timePeriod={timePeriod}
+        onTimePeriodChange={handleTimePeriodChange}
+      />
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -73,32 +72,16 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {currentReferrals.map((referral) => (
-              <tr key={referral.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {referral.Full_Name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {referral.Company || 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <ReferralStatusBadge status={referral.Lead_Status} />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(referral.Created_Time)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {getContactInfo(referral)}
-                </td>
-              </tr>
+              <ReferralTableRow key={referral.id} referral={referral} />
             ))}
           </tbody>
         </table>
       </div>
 
-      {referrals.length > ITEMS_PER_PAGE && (
+      {filteredReferrals.length > ITEMS_PER_PAGE && (
         <ReferralTablePagination
           currentPage={currentPage}
-          totalItems={referrals.length}
+          totalItems={filteredReferrals.length}
           itemsPerPage={ITEMS_PER_PAGE}
           onPageChange={setCurrentPage}
         />
