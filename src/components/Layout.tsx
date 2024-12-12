@@ -107,7 +107,7 @@ export default function Layout() {
                     className="flex items-center space-x-1 hover:text-gray-300"
                   >
                     <DollarSign size={20} />
-                    <span>My Compensation</span>
+                    <span>My Commissions</span>
                   </a>
                 ) : (
                   <button
@@ -115,7 +115,7 @@ export default function Layout() {
                     className="flex items-center space-x-1 hover:text-gray-300 opacity-50 cursor-not-allowed"
                   >
                     <DollarSign size={20} />
-                    <span>My Compensation</span>
+                    <span>My Commissions</span>
                   </button>
                 )}
               </>

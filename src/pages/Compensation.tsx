@@ -18,7 +18,7 @@ export default function Compensation() {
     <div className="space-y-6">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">My Compensation</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">My Commissions</h1>
           <p className="mt-2 text-sm text-gray-700">
             Track your earnings and payouts from successful referrals
           </p>
