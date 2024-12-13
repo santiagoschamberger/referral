@@ -7,6 +7,7 @@ interface PublicReferralSubmission {
   lastName: string;
   email: string;
   company: string;
+  businessType: string; // Added business type
   phoneNumber: string;
   description: string;
 }
@@ -19,7 +20,8 @@ export async function submitPublicReferral(referral: PublicReferralSubmission): 
       Last_Name: referral.lastName,
       Email: referral.email,
       Company: referral.company,
-      Title: referral.phoneNumber, // Using Title field for phone number as per API
+      Business_Type: referral.businessType, // Added business type to payload
+      Title: referral.phoneNumber,
       Description: referral.description
     });
 
