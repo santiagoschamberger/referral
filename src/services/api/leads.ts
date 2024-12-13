@@ -37,24 +37,23 @@ export async function getLeads(params?: LeadsParams, signal?: AbortSignal): Prom
   }
 }
 
- 
+
+
 export async function submitReferral(referral: ReferralSubmission): Promise<void> {
   try {
-    // Make the API request
     const response = await api.post('/leads/referral', {
       Last_Name: referral.lastName,
       First_Name: referral.firstName,
       Email: referral.email,
       Company: referral.company,
+      Business_Type: referral.businessType, // Added business type to payload
       Title: referral.title,
       Description: referral.description,
     });
 
-    // Extract response data
     const leadData = response.data?.leadData?.data?.[0];
     const noteData = response.data?.noteData?.data?.[0];
 
-    // Handle lead creation response
     if (leadData?.code === 'DUPLICATE_DATA') {
       throw new Error(
         `A referral with this email already exists (Lead ID: ${leadData.details.id})`
@@ -67,19 +66,17 @@ export async function submitReferral(referral: ReferralSubmission): Promise<void
       );
     }
 
-    // Handle note creation response
     if (noteData?.code !== 'SUCCESS') {
       throw new Error(
         noteData?.message || 'Failed to create note. Please try again later.'
       );
     }
 
-    // If both lead and note are successful, return without error
     console.log('Referral submitted successfully:', {
       leadId: leadData.details.id,
       noteId: noteData.details.id,
     });
   } catch (error) {
-    handleApiError(error); // Use your error handler
+    handleApiError(error);
   }
 }

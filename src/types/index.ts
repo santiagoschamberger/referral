@@ -107,3 +107,14 @@ export interface AuthResponse {
     token: string;
   };
 }
+
+export interface ReferralSubmission {
+  firstName: string;
+  lastName: string;
+  email: string;
+  company: string;
+  businessType: string;
+  phoneNumber: string;
+  title: string;
+  description: string;
+}
