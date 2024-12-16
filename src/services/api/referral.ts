@@ -25,13 +25,33 @@ export async function submitPublicReferral(referral: PublicReferralSubmission): 
       Description: referral.description
     });
 
-    if (response.data?.data?.[0]?.code === 'DUPLICATE_DATA') {
-      throw new Error('A referral with this email already exists');
+
+    const leadData = response.data?.leadData?.data?.[0];
+    const noteData = response.data?.noteData?.data?.[0];
+
+
+    if (leadData?.code === 'DUPLICATE_DATA') {
+      throw new Error(
+        `A referral with this email already exists (Lead ID: ${leadData.details.id})`
+      );
     }
 
-    if (response.data?.data?.[0]?.code !== 'SUCCESS') {
-      throw new Error(response.data?.data?.[0]?.message || 'Failed to submit referral');
+    if (leadData?.code !== 'SUCCESS') {
+      throw new Error(
+        leadData?.message || 'Failed to create lead. Please try again later.'
+      );
     }
+
+    if (noteData?.code !== 'SUCCESS') {
+      throw new Error(
+        noteData?.message || 'Failed to create note. Please try again later.'
+      );
+    }
+
+    console.log('Referral submitted successfully:', {
+      leadId: leadData.details.id,
+      noteId: noteData.details.id,
+    });
   } catch (error) {
     if (error instanceof Error) {
       throw error;
