@@ -34,7 +34,7 @@ export default function DealsTable({ deals }: DealsTableProps) {
     return (
       <div className="bg-white shadow rounded-lg overflow-hidden mt-6">
         <div className="px-6 py-5 border-b border-gray-200">
-          <h3 className="text-lg font-medium leading-6 text-gray-900">Recent Deals</h3>
+          <h3 className="text-lg font-medium leading-6 text-gray-900">Deals</h3>
         </div>
         <EmptyState
           icon={DollarSign}
@@ -48,7 +48,7 @@ export default function DealsTable({ deals }: DealsTableProps) {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden mt-6">
       <div className="px-6 py-5 border-b border-gray-200">
-        <h3 className="text-lg font-medium leading-6 text-gray-900">Recent Deals</h3>
+        <h3 className="text-lg font-medium leading-6 text-gray-900">Deals</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">

@@ -31,7 +31,7 @@ export default function ReferralTable({ referrals }: ReferralTableProps) {
     return (
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-200">
-          <h3 className="text-lg font-medium leading-6 text-gray-900">Recent Referrals</h3>
+          <h3 className="text-lg font-medium leading-6 text-gray-900">Referrals</h3>
         </div>
         <EmptyState
           icon={Users}

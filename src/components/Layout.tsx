@@ -87,6 +87,9 @@ export default function Layout() {
 									<Send size={20} />
 									<span>Submit Referral</span>
 								</Link>
+								{user && (
+									<CopyLinkButton link={getReferralLink(user)} />
+								)}
 								<Link
 									to="/tutorials"
 									className={`flex items-center space-x-1 hover:text-gray-300 ${isActive('/tutorials') ? 'text-red-400' : ''
@@ -117,10 +120,7 @@ export default function Layout() {
 							</>
 						)}
 						<div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-700">
-							<span className="text-sm">{user?.full_name}</span>
-							{user && (
-								<CopyLinkButton link={getReferralLink(user)} />
-							)}
+							<span className="text-sm">{user?.full_name}</span> 
 							<button
 								onClick={handleLogout}
 								className="text-gray-300 hover:text-white"

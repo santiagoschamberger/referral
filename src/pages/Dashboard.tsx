@@ -31,11 +31,11 @@ export default function Dashboard() {
   return (
     <AsyncBoundary loading={loading} error={error}>
       <div className="space-y-6">
-        {user && (
+        {/* {user && (
           <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
             <ReferralLink link={getReferralLink(user)} />
           </div>
-        )}
+        )} */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard
             title="Total Referrals"

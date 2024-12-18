@@ -16,7 +16,7 @@ export default function ReferralTableHeader({
   return (
     <div className="px-6 py-5 border-b border-gray-200">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium leading-6 text-gray-900">Recent Referrals</h3>
+        <h3 className="text-lg font-medium leading-6 text-gray-900">Referrals</h3>
         <div className="flex items-center space-x-2">
           <Calendar className="h-5 w-5 text-gray-400" />
           <select
