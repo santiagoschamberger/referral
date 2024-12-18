@@ -155,11 +155,11 @@ export default function SubmitReferral() {
             )}
           </div>
 
-          <BusinessTypeSelect
+          {/* <BusinessTypeSelect
             register={register}
             disabled={submitting}
             error={errors.businessType?.message}
-          />
+          /> */}
 
           <PhoneInput
             register={register}

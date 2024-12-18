@@ -151,11 +151,11 @@ export default function PublicReferral() {
               )}
             </div>
 
-            <BusinessTypeSelect
+            {/* <BusinessTypeSelect
               register={register}
               disabled={submitting}
               error={errors.businessType?.message}
-            />
+            /> */}
 
             <PhoneInput
               register={register}
